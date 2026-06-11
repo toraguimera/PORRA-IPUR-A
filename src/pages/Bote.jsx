@@ -55,6 +55,13 @@ export default function Bote() {
     await loadData()
   }
 
+  async function deleteParticipant(p) {
+    if (!participant.isAdmin) return
+    if (!window.confirm(`¿Eliminar a "${p.name}"? Se borrarán todas sus predicciones. Esta acción no se puede deshacer.`)) return
+    await supabase.from('participants').delete().eq('id', p.id)
+    await loadData()
+  }
+
   async function saveSettings() {
     setSavingSettings(true)
     const total = settings.first_pct + settings.second_pct + settings.third_pct
@@ -213,12 +220,22 @@ export default function Bote() {
                     </span>
                   )}
                   {participant.isAdmin && (
-                    <button
-                      onClick={() => togglePaid(p.id, p.has_paid)}
-                      className="text-xs bg-border px-2 py-1 rounded-lg text-gray-400 active:scale-95"
-                    >
-                      {p.has_paid ? 'Desmarcar' : 'Marcar pagado'}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => togglePaid(p.id, p.has_paid)}
+                        className="text-xs bg-border px-2 py-1 rounded-lg text-gray-400 active:scale-95"
+                      >
+                        {p.has_paid ? 'Desmarcar' : 'Marcar pagado'}
+                      </button>
+                      {p.id !== participant.id && (
+                        <button
+                          onClick={() => deleteParticipant(p)}
+                          className="text-xs bg-red-900/40 px-2 py-1 rounded-lg text-red-400 active:scale-95"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
