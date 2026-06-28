@@ -31,30 +31,19 @@ export default function Matches() {
     loadMatches()
     const sub = supabase
       .channel('matches-changes')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'matches' }, () => {
-        loadMatches()
-      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'matches' }, () => loadMatches())
       .subscribe()
-
-    // Auto-actualizar si es admin (solo una vez al abrir la página)
     if (participant.isAdmin && !hasFetched.current) {
       hasFetched.current = true
       autoUpdateScores()
     }
-
     return () => supabase.removeChannel(sub)
   }, [])
 
   async function loadMatches() {
-    const { data, error } = await supabase
-      .from('matches')
-      .select('*')
-      .order('kickoff', { ascending: true })
-
+    const { data, error } = await supabase.from('matches').select('*').order('kickoff', { ascending: true })
     if (error) {
-      setMatches(ALL_MATCHES.map(m => ({
-        ...m, home_score: null, away_score: null, status: 'scheduled'
-      })))
+      setMatches(ALL_MATCHES.map(m => ({ ...m, home_score: null, away_score: null, status: 'scheduled' })))
     } else {
       setMatches(data)
     }
@@ -62,11 +51,7 @@ export default function Matches() {
   }
 
   async function autoUpdateScores() {
-    try {
-      await fetch('/api/update-scores')
-    } catch (e) {
-      // Silencioso si falla
-    }
+    try { await fetch('/api/update-scores') } catch (e) {}
   }
 
   async function manualUpdate() {
@@ -74,24 +59,20 @@ export default function Matches() {
     try {
       const res = await fetch('/api/update-scores')
       const data = await res.json()
-      setLastUpdate(data.updated ?? 0)
+      setLastUpdate(data.updated ?? data.updatedScores ?? 0)
       await loadMatches()
-    } catch (e) {
-      setLastUpdate(-1)
-    }
+    } catch (e) { setLastUpdate(-1) }
     setUpdating(false)
   }
 
-  const now = new Date()
-
   const filteredMatches = matches.filter(m => {
-    if (filter === 'proximos' && (m.status === 'finished' || m.homeTeam === 'Por determinar')) return false
+    if (filter === 'proximos' && m.status === 'finished') return false
+    if (filter === 'proximos' && m.homeTeam === 'Por determinar' && m.round === 'group') return false
     if (filter === 'terminados' && m.status !== 'finished') return false
     if (groupFilter !== 'todos' && m.group !== groupFilter) return false
     return true
   })
 
-  // Agrupar por fecha (hora local España UTC+2)
   const grouped = {}
   filteredMatches.forEach(m => {
     const localDate = new Date(new Date(m.kickoff).getTime() + 2 * 60 * 60 * 1000)
@@ -99,85 +80,58 @@ export default function Matches() {
     if (!grouped[dateKey]) grouped[dateKey] = []
     grouped[dateKey].push(m)
   })
-
   const groupKeys = Object.keys(grouped).sort()
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-gray-500 text-center">
-          <div className="text-3xl mb-2">⚽</div>
-          <div className="text-sm">Cargando partidos...</div>
-        </div>
+        <div className="text-gray-500 text-center"><div className="text-3xl mb-2">⚽</div><div className="text-sm">Cargando partidos...</div></div>
       </div>
     )
   }
 
   return (
     <div className="px-4 pt-4">
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-black text-white">⚽ Partidos</h1>
         <div className="flex items-center gap-2">
           {participant.isAdmin && (
-            <button
-              onClick={manualUpdate}
-              disabled={updating}
-              className="text-xs bg-gold/20 text-gold px-2 py-1 rounded-full font-bold active:scale-95 disabled:opacity-50"
-            >
-              {updating ? '⏳' : '🔄'} {updating ? 'Actualizando...' : 'Actualizar'}
+            <button onClick={manualUpdate} disabled={updating} className="text-xs bg-gold/20 text-gold px-2 py-1 rounded-full font-bold active:scale-95 disabled:opacity-50">
+              {updating ? '⏳ Actualizando...' : '🔄 Actualizar'}
             </button>
           )}
-          <button
-            onClick={() => setShowGroupFilter(!showGroupFilter)}
-            className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${groupFilter !== 'todos' ? 'border-accent text-accent' : 'border-border text-gray-400'}`}
-          >
+          <button onClick={() => setShowGroupFilter(!showGroupFilter)} className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${groupFilter !== 'todos' ? 'border-accent text-accent' : 'border-border text-gray-400'}`}>
             {groupFilter === 'todos' ? 'Grupo ▾' : `Gr. ${groupFilter} ▾`}
           </button>
         </div>
       </div>
 
-      {/* Mensaje de última actualización */}
       {lastUpdate !== null && participant.isAdmin && (
         <div className={`text-xs mb-3 px-3 py-1.5 rounded-lg ${lastUpdate === -1 ? 'bg-red-900/30 text-red-400' : lastUpdate === 0 ? 'bg-border text-gray-400' : 'bg-green-900/30 text-green-400'}`}>
           {lastUpdate === -1 ? '⚠️ Error al conectar con la API' : lastUpdate === 0 ? '✓ Todo al día, sin cambios nuevos' : `✅ ${lastUpdate} partido${lastUpdate > 1 ? 's' : ''} actualizado${lastUpdate > 1 ? 's' : ''}`}
         </div>
       )}
 
-      {/* Filtro por grupo */}
       {showGroupFilter && (
         <div className="mb-4 flex flex-wrap gap-1.5">
-          {['todos', 'A','B','C','D','E','F','G','H','I','J','K','L'].map(g => (
-            <button
-              key={g}
-              onClick={() => { setGroupFilter(g); setShowGroupFilter(false) }}
-              className={`text-xs px-3 py-1.5 rounded-full font-bold transition-colors ${groupFilter === g ? 'bg-accent text-black' : 'bg-card border border-border text-gray-300'}`}
-            >
+          {['todos','A','B','C','D','E','F','G','H','I','J','K','L'].map(g => (
+            <button key={g} onClick={() => { setGroupFilter(g); setShowGroupFilter(false) }} className={`text-xs px-3 py-1.5 rounded-full font-bold transition-colors ${groupFilter === g ? 'bg-accent text-black' : 'bg-card border border-border text-gray-300'}`}>
               {g === 'todos' ? 'Todos' : `Grupo ${g}`}
             </button>
           ))}
         </div>
       )}
 
-      {/* Filtros de estado */}
       <div className="flex gap-2 mb-4 bg-card rounded-xl p-1">
         {FILTERS.map(f => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`flex-1 py-1.5 rounded-lg text-sm font-bold transition-all ${filter === f.key ? 'bg-bg text-white shadow' : 'text-gray-500'}`}
-          >
+          <button key={f.key} onClick={() => setFilter(f.key)} className={`flex-1 py-1.5 rounded-lg text-sm font-bold transition-all ${filter === f.key ? 'bg-bg text-white shadow' : 'text-gray-500'}`}>
             {f.label}
           </button>
         ))}
       </div>
 
-      {/* Lista de partidos agrupados por día */}
       {groupKeys.length === 0 ? (
-        <div className="text-center text-gray-500 mt-12">
-          <div className="text-4xl mb-3">🎉</div>
-          <p>No hay partidos en esta sección</p>
-        </div>
+        <div className="text-center text-gray-500 mt-12"><div className="text-4xl mb-3">🎉</div><p>No hay partidos en esta sección</p></div>
       ) : (
         groupKeys.map(dateKey => (
           <div key={dateKey} className="mb-6">
@@ -187,11 +141,7 @@ export default function Matches() {
               <span className="flex-1 h-px bg-border"/>
             </h2>
             {grouped[dateKey].map(match => (
-              <MatchCard
-                key={match.id}
-                match={match}
-                isAdmin={participant.isAdmin}
-              />
+              <MatchCard key={match.id} match={match} isAdmin={participant.isAdmin} />
             ))}
           </div>
         ))
