@@ -218,14 +218,19 @@ export const ROUND_LABELS = {
 }
 
 // Sistema de puntos
-export function calculatePoints(homeScore, awayScore, homePred, awayPred) {
+export function calculatePoints(homeScore, awayScore, homePred, awayPred, penaltyWinner = null, predPenaltyWinner = null) {
   if (homeScore === null || awayScore === null) return null
   if (homePred === null || awayPred === null) return 0
-  // Resultado exacto
-  if (homeScore === homePred && awayScore === awayPred) return 8
-  // Ganador correcto (o empate correcto)
-  const realResult = homeScore > awayScore ? 'H' : awayScore > homeScore ? 'A' : 'D'
-  const predResult = homePred > awayPred ? 'H' : awayPred > homePred ? 'A' : 'D'
-  if (realResult === predResult) return 3
+  const isDraw = homeScore === awayScore
+  const isKnockoutDraw = isDraw && penaltyWinner !== null
+  const isPredDraw = homePred === awayPred
+  const exactScore = homeScore === homePred && awayScore === awayPred
+  if (exactScore) {
+    if (!isKnockoutDraw) return 8
+    return predPenaltyWinner === penaltyWinner ? 8 : 3
+  }
+  const realWinner = homeScore > awayScore ? 'home' : awayScore > homeScore ? 'away' : (penaltyWinner || 'D')
+  const predWinner = homePred > awayPred ? 'home' : awayPred > homePred ? 'away' : (isPredDraw ? (predPenaltyWinner || 'D') : null)
+  if (realWinner && predWinner && realWinner === predWinner) return 3
   return 0
 }
