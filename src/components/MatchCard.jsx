@@ -285,14 +285,14 @@ export default function MatchCard({ match, isAdmin }) {
               onChange={(e) => { setAdminAwayScore(e.target.value); setAdminPenaltyWinner(null) }}
               className="score-input text-sm" placeholder="0" />
             <button onClick={saveAdminScore}
-              disabled={savingAdmin || adminHomeScore === '' || adminAwayScore === '' || (isKnockout && isAdminDraw && !adminPenaltyWinner)}
+              disabled={savingAdmin || adminHomeScore === '' || adminAwayScore === ''}
               className="flex-1 py-2 bg-gold text-black font-bold text-sm rounded-xl active:scale-95 transition-all disabled:opacity-40">
               {savingAdmin ? '...' : '\u2713 Confirmar'}
             </button>
           </div>
           {isKnockout && isAdminDraw && (
             <div className="mt-2">
-              <p className="text-xs text-gray-500 mb-1.5">\ud83e\udd45 Ganador en penaltis (obligatorio)</p>
+              <p className="text-xs text-gray-500 mb-1.5">\ud83e\udd45 Ganador en penaltis (opcional)</p>
               <div className="flex gap-2">
                 <button onClick={() => setAdminPenaltyWinner('home')}
                   className={`flex-1 py-2 text-xs font-bold rounded-xl border transition-all active:scale-95 ${adminPenaltyWinner === 'home' ? 'bg-gold text-black border-gold' : 'border-border text-gray-400 bg-transparent'}`}>
