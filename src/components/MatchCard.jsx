@@ -20,7 +20,7 @@ function PointsBadge({ points }) {
   const color = points === 8 ? 'bg-gold text-black' : points === 3 ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-400'
   return (
     <span className={`text-xs font-black px-2 py-0.5 rounded-full ${color}`}>
-      {points === 8 ? '\u2b50 +8' : points === 3 ? '+3' : '0'}
+      {points === 8 ? '⭐ +8' : points === 3 ? '+3' : '0'}
     </span>
   )
 }
@@ -49,8 +49,8 @@ export default function MatchCard({ match, isAdmin }) {
   const isPredDraw = homePred !== '' && awayPred !== '' && parseInt(homePred) === parseInt(awayPred)
   const isAdminDraw = adminHomeScore !== '' && adminAwayScore !== '' && parseInt(adminHomeScore) === parseInt(adminAwayScore)
   const matchHasPenalties = isFinished && match.penalty_winner != null
-  const homeFlag = FLAGS[match.homeTeam] || '\ud83c\udff3\ufe0f'
-  const awayFlag = FLAGS[match.awayTeam] || '\ud83c\udff3\ufe0f'
+  const homeFlag = FLAGS[match.homeTeam] || '🏳️'
+  const awayFlag = FLAGS[match.awayTeam] || '🏳️'
   const isPorDeterminar = match.homeTeam === 'Por determinar'
 
   useEffect(() => {
@@ -141,7 +141,7 @@ export default function MatchCard({ match, isAdmin }) {
         <div className="flex items-center gap-2">
           {match.group && (
             <span className="text-xs font-bold bg-border px-2 py-0.5 rounded-full text-gray-300">
-              Grupo {match.group}{match.matchday ? ` \u00b7 J${match.matchday}` : ''}
+              Grupo {match.group}{match.matchday ? ` · J${match.matchday}` : ''}
             </span>
           )}
           {match.label && !match.group && (
@@ -157,7 +157,7 @@ export default function MatchCard({ match, isAdmin }) {
             <span className="text-xs text-gray-500">Finalizado</span>
           ) : (
             <span className="text-xs text-gray-400">
-              <span className="font-medium text-white">{dayStr}</span> \u00b7 {timeStr}
+              <span className="font-medium text-white">{dayStr}</span> · {timeStr}
             </span>
           )}
         </div>
@@ -165,7 +165,7 @@ export default function MatchCard({ match, isAdmin }) {
 
       <div className="flex items-center justify-between gap-2">
         <div className="flex-1 text-center">
-          <div className="text-3xl mb-1">{isPorDeterminar ? '\u2753' : homeFlag}</div>
+          <div className="text-3xl mb-1">{isPorDeterminar ? '❓' : homeFlag}</div>
           <div className="text-xs font-semibold text-white leading-tight">{match.homeTeam}</div>
         </div>
 
@@ -179,7 +179,7 @@ export default function MatchCard({ match, isAdmin }) {
               </div>
               {matchHasPenalties && (
                 <div className="text-xs text-gray-400 mt-0.5">
-                  \ud83e\udd45 <span className="text-white font-semibold">
+                  🥅 <span className="text-white font-semibold">
                     {match.penalty_winner === 'home' ? match.homeTeam : match.awayTeam}
                   </span>
                 </div>
@@ -207,14 +207,14 @@ export default function MatchCard({ match, isAdmin }) {
                   </div>
                   {isKnockout && predPenaltyWinner && isPredDraw && (
                     <div className="text-xs text-accent/70 mt-0.5 text-center">
-                      \ud83e\udd45 {predPenaltyWinner === 'home' ? match.homeTeam : match.awayTeam}
+                      🥅 {predPenaltyWinner === 'home' ? match.homeTeam : match.awayTeam}
                     </div>
                   )}
-                  <div className="text-xs text-accent mt-0.5">\u2713 Guardado</div>
+                  <div className="text-xs text-accent mt-0.5">✓ Guardado</div>
                 </div>
               ) : hasStarted ? (
                 <div className="text-gray-500 text-sm text-center">
-                  <div className="text-xl">\u23f0</div>
+                  <div className="text-xl">⏰</div>
                   <div className="text-xs">Sin porra</div>
                 </div>
               ) : (
@@ -233,14 +233,14 @@ export default function MatchCard({ match, isAdmin }) {
         </div>
 
         <div className="flex-1 text-center">
-          <div className="text-3xl mb-1">{isPorDeterminar ? '\u2753' : awayFlag}</div>
+          <div className="text-3xl mb-1">{isPorDeterminar ? '❓' : awayFlag}</div>
           <div className="text-xs font-semibold text-white leading-tight">{match.awayTeam}</div>
         </div>
       </div>
 
       {isKnockout && isPredDraw && !hasStarted && !saved && (
         <div className="mt-3">
-          <p className="text-xs text-gray-500 text-center mb-2">\ud83e\udd45 \u00bfQui\u00e9n gana en penaltis?</p>
+          <p className="text-xs text-gray-500 text-center mb-2">🥅 ¿Quién gana en penaltis?</p>
           <div className="flex gap-2">
             <button onClick={() => setPredPenaltyWinner(predPenaltyWinner === 'home' ? null : 'home')}
               className={`flex-1 py-2 text-xs font-bold rounded-xl border transition-all active:scale-95 ${predPenaltyWinner === 'home' ? 'bg-accent text-black border-accent' : 'border-border text-gray-400 bg-transparent'}`}>
@@ -257,7 +257,7 @@ export default function MatchCard({ match, isAdmin }) {
       {!hasStarted && !isPorDeterminar && (homePred !== '' || awayPred !== '') && !saved && (
         <button onClick={savePrediction} disabled={saving || homePred === '' || awayPred === ''}
           className="w-full mt-3 py-2.5 bg-accent text-black font-black text-sm rounded-xl active:scale-95 transition-all disabled:opacity-40">
-          {saving ? 'Guardando...' : '\ud83d\udcbe Guardar porra'}
+          {saving ? 'Guardando...' : '💾 Guardar porra'}
         </button>
       )}
 
@@ -265,7 +265,7 @@ export default function MatchCard({ match, isAdmin }) {
         <div className="mt-3 pt-3 border-t border-border">
           <button onClick={openEditMode}
             className="w-full py-2 text-xs font-bold text-gray-400 border border-border rounded-xl active:scale-95 transition-all">
-            \u270f\ufe0f Editar resultado
+            ✏️ Editar resultado
           </button>
         </div>
       )}
@@ -273,7 +273,7 @@ export default function MatchCard({ match, isAdmin }) {
       {isAdmin && ((!isFinished && !isPorDeterminar) || editMode) && (
         <div className="mt-3 pt-3 border-t border-border">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-gray-500">\u2699\ufe0f Resultado real (admin)</p>
+            <p className="text-xs text-gray-500">⚙️ Resultado real (admin)</p>
             {editMode && <button onClick={() => setEditMode(false)} className="text-xs text-gray-500 underline">Cancelar</button>}
           </div>
           <div className="flex items-center gap-2">
@@ -287,12 +287,12 @@ export default function MatchCard({ match, isAdmin }) {
             <button onClick={saveAdminScore}
               disabled={savingAdmin || adminHomeScore === '' || adminAwayScore === ''}
               className="flex-1 py-2 bg-gold text-black font-bold text-sm rounded-xl active:scale-95 transition-all disabled:opacity-40">
-              {savingAdmin ? '...' : '\u2713 Confirmar'}
+              {savingAdmin ? '...' : '✓ Confirmar'}
             </button>
           </div>
           {isKnockout && isAdminDraw && (
             <div className="mt-2">
-              <p className="text-xs text-gray-500 mb-1.5">\ud83e\udd45 Ganador en penaltis (opcional)</p>
+              <p className="text-xs text-gray-500 mb-1.5">🥅 Ganador en penaltis (opcional)</p>
               <div className="flex gap-2">
                 <button onClick={() => setAdminPenaltyWinner('home')}
                   className={`flex-1 py-2 text-xs font-bold rounded-xl border transition-all active:scale-95 ${adminPenaltyWinner === 'home' ? 'bg-gold text-black border-gold' : 'border-border text-gray-400 bg-transparent'}`}>
