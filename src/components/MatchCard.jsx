@@ -38,6 +38,7 @@ export default function MatchCard({ match, isAdmin }) {
   const [adminHomeScore, setAdminHomeScore] = useState('')
   const [adminAwayScore, setAdminAwayScore] = useState('')
   const [savingAdmin, setSavingAdmin] = useState(false)
+  const [editMode, setEditMode] = useState(false)
 
   const kickoffDate = new Date(match.kickoff)
   const now = new Date()
@@ -251,7 +252,16 @@ export default function MatchCard({ match, isAdmin }) {
       )}
 
       {/* Panel admin para introducir resultado */}
-      {isAdmin && !isFinished && !isPorDeterminar && (
+            {isAdmin && isFinished && !isPorDeterminar && !editMode && (
+        <div className="mt-3 pt-3 border-t border-border">
+          <button
+            onClick={() => { setAdminHomeScore(String(match.home_score ?? '')); setAdminAwayScore(String(match.away_score ?? '')); setAdminPenaltyWinner(match.penalty_winner || null); setEditMode(true) }}
+            className="w-full py-2 text-xs font-bold text-gray-400 border border-border rounded-xl active:scale-95 transition-all"
+          >✏️ Editar resultado</button>
+        </div>
+      )}
+
+      {isAdmin && (!isFinished || editMode) && !isPorDeterminar && (
         <div className="mt-3 pt-3 border-t border-border">
           <p className="text-xs text-gray-500 mb-2">⚙️ Resultado real (admin)</p>
           <div className="flex items-center gap-2">
