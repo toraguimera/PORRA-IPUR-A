@@ -221,14 +221,9 @@ export const ROUND_LABELS = {
 export function calculatePoints(homeScore, awayScore, homePred, awayPred, penaltyWinner = null, predPenaltyWinner = null) {
   if (homeScore === null || awayScore === null) return null
   if (homePred === null || awayPred === null) return 0
-  const isDraw = homeScore === awayScore
-  const isKnockoutDraw = isDraw && penaltyWinner !== null
   const isPredDraw = homePred === awayPred
   const exactScore = homeScore === homePred && awayScore === awayPred
-  if (exactScore) {
-    if (!isKnockoutDraw) return 8
-    return predPenaltyWinner === penaltyWinner ? 8 : 3
-  }
+  if (exactScore) return 8
   const realWinner = homeScore > awayScore ? 'home' : awayScore > homeScore ? 'away' : (penaltyWinner || 'D')
   const predWinner = homePred > awayPred ? 'home' : awayPred > homePred ? 'away' : (isPredDraw ? (predPenaltyWinner || 'D') : null)
   if (realWinner && predWinner && realWinner === predWinner) return 3
