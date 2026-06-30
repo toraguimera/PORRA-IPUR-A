@@ -29,7 +29,6 @@ export default function MatchCard({ match, isAdmin }) {
   const { participant } = useApp()
   const [homePred, setHomePred] = useState('')
   const [awayPred, setAwayPred] = useState('')
-  const [predPenaltyWinner, setPredPenaltyWinner] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [predPoints, setPredPoints] = useState(null)
@@ -46,7 +45,6 @@ export default function MatchCard({ match, isAdmin }) {
   const isLive = match.status === 'live'
   const { dayStr, timeStr } = formatKickoff(match.kickoff)
   const isKnockout = match.round !== 'group'
-  const isPredDraw = homePred !== '' && awayPred !== '' && parseInt(homePred) === parseInt(awayPred)
   const isAdminDraw = adminHomeScore !== '' && adminAwayScore !== '' && parseInt(adminHomeScore) === parseInt(adminAwayScore)
   const matchHasPenalties = isFinished && match.penalty_winner != null
   const homeFlag = FLAGS[match.homeTeam] || '🏳️'
@@ -68,7 +66,6 @@ export default function MatchCard({ match, isAdmin }) {
     if (data) {
       setHomePred(String(data.home_prediction))
       setAwayPred(String(data.away_prediction))
-      setPredPenaltyWinner(data.penalty_winner || null)
       setPredPoints(data.points)
       setSaved(true)
     }
@@ -85,7 +82,7 @@ export default function MatchCard({ match, isAdmin }) {
         match_id: match.id,
         home_prediction: parseInt(homePred),
         away_prediction: parseInt(awayPred),
-        penalty_winner: isKnockout && isPredDraw ? predPenaltyWinner : null,
+        penalty_winner: null,
         points: null,
       }, { onConflict: 'participant_id,match_id' })
     if (!error) setSaved(true)
@@ -188,9 +185,6 @@ export default function MatchCard({ match, isAdmin }) {
                 <div className="mt-1 flex flex-col items-center gap-1">
                   <div className="text-gray-400 text-xs">
                     Tu porra: <span className="text-white">{homePred} - {awayPred}</span>
-                    {predPenaltyWinner && matchHasPenalties && (
-                      <span className="text-gray-500 ml-1">({predPenaltyWinner === 'home' ? match.homeTeam : match.awayTeam})</span>
-                    )}
                   </div>
                   <PointsBadge points={predPoints} />
                 </div>
@@ -205,11 +199,6 @@ export default function MatchCard({ match, isAdmin }) {
                     <span className="text-gray-500 text-lg">-</span>
                     <span>{awayPred}</span>
                   </div>
-                  {isKnockout && predPenaltyWinner && isPredDraw && (
-                    <div className="text-xs text-accent/70 mt-0.5 text-center">
-                      🥅 {predPenaltyWinner === 'home' ? match.homeTeam : match.awayTeam}
-                    </div>
-                  )}
                   <div className="text-xs text-accent mt-0.5">✓ Guardado</div>
                 </div>
               ) : hasStarted ? (
@@ -237,22 +226,6 @@ export default function MatchCard({ match, isAdmin }) {
           <div className="text-xs font-semibold text-white leading-tight">{match.awayTeam}</div>
         </div>
       </div>
-
-      {isKnockout && isPredDraw && !hasStarted && !saved && (
-        <div className="mt-3">
-          <p className="text-xs text-gray-500 text-center mb-2">🥅 ¿Quién gana en penaltis?</p>
-          <div className="flex gap-2">
-            <button onClick={() => setPredPenaltyWinner(predPenaltyWinner === 'home' ? null : 'home')}
-              className={`flex-1 py-2 text-xs font-bold rounded-xl border transition-all active:scale-95 ${predPenaltyWinner === 'home' ? 'bg-accent text-black border-accent' : 'border-border text-gray-400 bg-transparent'}`}>
-              {homeFlag} {match.homeTeam}
-            </button>
-            <button onClick={() => setPredPenaltyWinner(predPenaltyWinner === 'away' ? null : 'away')}
-              className={`flex-1 py-2 text-xs font-bold rounded-xl border transition-all active:scale-95 ${predPenaltyWinner === 'away' ? 'bg-accent text-black border-accent' : 'border-border text-gray-400 bg-transparent'}`}>
-              {awayFlag} {match.awayTeam}
-            </button>
-          </div>
-        </div>
-      )}
 
       {!hasStarted && !isPorDeterminar && (homePred !== '' || awayPred !== '') && !saved && (
         <button onClick={savePrediction} disabled={saving || homePred === '' || awayPred === ''}
