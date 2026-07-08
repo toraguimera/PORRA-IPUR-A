@@ -224,6 +224,10 @@ export function calculatePoints(homeScore, awayScore, homePred, awayPred, penalt
   const isPredDraw = homePred === awayPred
   const exactScore = homeScore === homePred && awayScore === awayPred
   if (exactScore) return 8
+  // Si el resultado real es empate y la predicción también es empate → 3 puntos.
+  // En eliminatorias, predecir empate = acertar que va a penaltis. Como los participantes
+  // no pueden predecir el ganador en penaltis, el resultado del shootout no penaliza.
+  if (homeScore === awayScore && isPredDraw) return 3
   const realWinner = homeScore > awayScore ? 'home' : awayScore > homeScore ? 'away' : (penaltyWinner || 'D')
   const predWinner = homePred > awayPred ? 'home' : awayPred > homePred ? 'away' : (isPredDraw ? (predPenaltyWinner || 'D') : null)
   if (realWinner && predWinner && realWinner === predWinner) return 3
