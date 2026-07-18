@@ -37,7 +37,6 @@ export default function Ranking() {
 
   useEffect(() => {
     loadRanking()
-    // Suscribir a cambios en tiempo real
     const sub = supabase
       .channel('ranking-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'predictions' }, () => loadRanking())
@@ -47,7 +46,6 @@ export default function Ranking() {
   }, [])
 
   async function loadRanking() {
-    // Obtener participantes con sus puntos totales
     const { data: participants } = await supabase
       .from('participants')
       .select(`
@@ -56,7 +54,6 @@ export default function Ranking() {
       `)
       .order('name')
 
-    // Contar partidos
     const { count: total } = await supabase.from('matches').select('*', { count: 'exact', head: true }).eq('round', 'group')
     const { count: finished } = await supabase.from('matches').select('*', { count: 'exact', head: true }).eq('status', 'finished')
     setTotalMatches(total || 0)
@@ -93,6 +90,8 @@ export default function Ranking() {
   }
 
   function openPlayer(player) {
+    // Solo admin puede ver predicciones de otros participantes
+    if (!participant.isAdmin && player.id !== participant.id) return
     setSelectedPlayer(player)
     loadPlayerPredictions(player.id)
   }
@@ -108,7 +107,6 @@ export default function Ranking() {
     )
   }
 
-  // Modal de predicciones de un jugador
   if (selectedPlayer) {
     return (
       <div className="px-4 pt-4">
@@ -188,7 +186,6 @@ export default function Ranking() {
 
   return (
     <div className="px-4 pt-4">
-      {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-xl font-black text-white">🏆 Clasificación</h1>
         <div className="text-xs text-gray-500 text-right">
@@ -197,7 +194,6 @@ export default function Ranking() {
         </div>
       </div>
 
-      {/* Barra de progreso */}
       <div className="h-1 bg-border rounded-full mb-5">
         <div
           className="h-full bg-accent rounded-full transition-all"
@@ -205,14 +201,12 @@ export default function Ranking() {
         />
       </div>
 
-      {/* Leyenda puntos */}
       <div className="flex gap-3 mb-4 text-xs text-gray-500">
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gold inline-block"/>8 pts exacto</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block"/>3 pts ganador</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-700 inline-block"/>0 pts fallo</span>
       </div>
 
-      {/* Lista */}
       {rankings.length === 0 ? (
         <div className="text-center text-gray-500 mt-12">
           <div className="text-4xl mb-3">👥</div>
@@ -223,25 +217,25 @@ export default function Ranking() {
           {rankings.map((player, index) => {
             const position = index + 1
             const isMe = player.id === participant.id
+            const canViewPredictions = participant.isAdmin || isMe
             return (
               <div
                 key={player.id}
                 onClick={() => openPlayer(player)}
-                className={`flex items-center gap-3 p-3 rounded-2xl border cursor-pointer active:scale-[0.98] transition-all ${
+                className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${
+                  canViewPredictions ? 'cursor-pointer active:scale-[0.98]' : 'cursor-default'
+                } ${
                   isMe ? 'bg-accent/10 border-accent/50' : 'bg-card border-border'
                 }`}
               >
-                {/* Posición */}
                 <div className="w-8 flex items-center justify-center flex-shrink-0">
                   <RankIcon position={position} />
                 </div>
 
-                {/* Avatar */}
                 <div className={`w-10 h-10 rounded-xl ${getColor(player.name)} flex items-center justify-center text-sm font-black text-white flex-shrink-0`}>
                   {getInitials(player.name)}
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className={`font-bold text-sm truncate ${isMe ? 'text-accent' : 'text-white'}`}>
@@ -257,7 +251,6 @@ export default function Ranking() {
                   </div>
                 </div>
 
-                {/* Puntos */}
                 <div className="text-right flex-shrink-0">
                   <div className={`text-xl font-black ${
                     position === 1 ? 'text-gold' :
